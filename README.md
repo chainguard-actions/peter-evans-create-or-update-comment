@@ -1,6 +1,6 @@
 # peter-evans/create-or-update-comment
 
-A GitHub action to create or update an issue or pull request comment
+Create or update an issue or pull request comment
 
 Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at [https://github.com/peter-evans/create-or-update-comment](https://github.com/peter-evans/create-or-update-comment).
 
