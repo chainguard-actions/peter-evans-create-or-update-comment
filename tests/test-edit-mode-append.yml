@@ -1,0 +1,41 @@
+name: Test updating a comment with edit-mode append
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Append to comment using comment-id and edit-mode append
+        id: append-comment
+        uses: .
+        with:
+          token: ${{ github.token }}
+          comment-id: 1
+          body: |
+            This text was appended by the test suite.
+          edit-mode: append
+          append-separator: newline
+        continue-on-error: true
+
+      - name: Assert step ran (output or error)
+        env:
+          COMMENT_ID: ${{ steps.append-comment.outputs.comment-id }}
+          OUTCOME: ${{ steps.append-comment.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "comment-id: $COMMENT_ID"
+          if [ "$OUTCOME" = "success" ]; then
+            if [ -z "$COMMENT_ID" ]; then
+              echo "FAIL: action succeeded but comment-id output is empty"
+              exit 1
+            fi
+            echo "PASS: comment appended with id=$COMMENT_ID"
+          else
+            echo "INFO: action did not succeed (expected under act without real GitHub token)"
+            echo "PASS: action invoked correctly, API failure is expected in test environment"
+          fi

@@ -1,0 +1,71 @@
+name: Test v3
+on: workflow_dispatch
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  testCreateOrUpdateComment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      # Test create
+      - name: Create comment
+        uses: peter-evans/create-or-update-comment@23ff15729ef2fc348714a3bb66d2f655ca9066f2 # v3
+        id: couc
+        with:
+          token: ${{ secrets.ACTIONS_BOT_TOKEN }}
+          issue-number: 1
+          body: |
+            This is a multi-line test comment
+            - With GitHub **Markdown** :sparkles:
+            - Created by [create-or-update-comment][1]
+
+            [1]: https://github.com/peter-evans/create-or-update-comment
+          reactions: '+1'
+
+      # Test update
+      - name: Update comment
+        uses: peter-evans/create-or-update-comment@23ff15729ef2fc348714a3bb66d2f655ca9066f2 # v3
+        with:
+          token: ${{ secrets.ACTIONS_BOT_TOKEN }}
+          comment-id: ${{ steps.couc.outputs.comment-id }}
+          body: |
+            **Edit:** Some additional info
+          reactions: eyes
+          reactions-edit-mode: replace
+
+      # Test add reactions
+      - name: Add reactions
+        uses: peter-evans/create-or-update-comment@23ff15729ef2fc348714a3bb66d2f655ca9066f2 # v3
+        with:
+          token: ${{ secrets.ACTIONS_BOT_TOKEN }}
+          comment-id: ${{ steps.couc.outputs.comment-id }}
+          reactions: heart, hooray, laugh
+
+      # Test create with body from file
+      - name: Create comment
+        uses: peter-evans/create-or-update-comment@23ff15729ef2fc348714a3bb66d2f655ca9066f2 # v3
+        with:
+          token: ${{ secrets.ACTIONS_BOT_TOKEN }}
+          issue-number: 1
+          body-file: .github/comment-body.md
+
+      # Test create from template
+      - name: Render template
+        id: template
+        uses: chuhlomin/render-template@a473db625a96c98e519d188812dc22bcaf54ffba # v1.9
+        with:
+          template: .github/comment-template.md
+          vars: |
+            foo: this
+            bar: that
+
+      - name: Create comment
+        uses: peter-evans/create-or-update-comment@23ff15729ef2fc348714a3bb66d2f655ca9066f2 # v3
+        with:
+          token: ${{ secrets.ACTIONS_BOT_TOKEN }}
+          issue-number: 1
+          body: ${{ steps.template.outputs.result }}
