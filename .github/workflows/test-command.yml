@@ -1,0 +1,97 @@
+name: Test Command
+on:
+  repository_dispatch:
+    types: [test-command]
+
+permissions:
+  issues: write
+  pull-requests: write
+  contents: read
+
+jobs:
+  testCreateOrUpdateComment:
+    runs-on: ubuntu-latest
+    steps:
+      # Get the target repository and branch
+      - name: Get the target repository and branch
+        id: vars
+        env:
+          PAYLOAD_REPOSITORY: ${{ github.event.client_payload.slash_command.repository }}
+          PAYLOAD_BRANCH: ${{ github.event.client_payload.slash_command.branch }}
+          DEFAULT_REPOSITORY: ${{ github.repository }}
+        run: |
+          repository="$PAYLOAD_REPOSITORY"
+          if [[ -z "$repository" ]]; then repository="$DEFAULT_REPOSITORY"; fi
+          safe_repository=$(printf '%s' "$repository" | tr -d '\n\r')
+          echo "repository=$safe_repository" >> "$GITHUB_OUTPUT"
+          branch="$PAYLOAD_BRANCH"
+          if [[ -z "$branch" ]]; then branch="main"; fi
+          safe_branch=$(printf '%s' "$branch" | tr -d '\n\r')
+          echo "branch=$safe_branch" >> "$GITHUB_OUTPUT"
+
+      # Checkout the branch to test
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          repository: ${{ steps.vars.outputs.repository }}
+          ref: ${{ steps.vars.outputs.branch }}
+
+      # Test create
+      - name: Create comment
+        uses: ./
+        id: couc
+        with:
+          issue-number: 1
+          body: |
+            This is a multi-line test comment
+            - With GitHub **Markdown** :sparkles:
+            - Created by [create-or-update-comment][1]
+
+            [1]: https://github.com/peter-evans/create-or-update-comment
+          reactions: '+1'
+
+      # Test update
+      - name: Update comment
+        uses: ./
+        with:
+          comment-id: ${{ steps.couc.outputs.comment-id }}
+          body: |
+            **Edit:** Some additional info
+          reactions: eyes
+          reactions-edit-mode: replace
+
+      # Test add reactions
+      - name: Add reactions
+        uses: ./
+        with:
+          comment-id: ${{ steps.couc.outputs.comment-id }}
+          reactions: heart, hooray, laugh
+
+      # Test create with body from file
+      - name: Create comment
+        uses: ./
+        with:
+          issue-number: 1
+          body-path: .github/comment-body.md
+
+      # Test create from template
+      - name: Render template
+        id: template
+        uses: chuhlomin/render-template@807354a04d9300c9c2ac177c0aa41556c92b3f75 # v1.10
+        with:
+          template: .github/comment-template.md
+          vars: |
+            foo: this
+            bar: that
+
+      - name: Create comment
+        uses: ./
+        with:
+          issue-number: 1
+          body: ${{ steps.template.outputs.result }}
+
+      - name: Add reaction
+        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4
+        with:
+          repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
+          comment-id: ${{ github.event.client_payload.github.payload.comment.id }}
+          reactions: hooray
