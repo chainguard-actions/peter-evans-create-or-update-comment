@@ -9,7 +9,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
 | v4 | [`v4`](https://github.com/chainguard-actions/peter-evans-create-or-update-comment/tree/v4) | [`71345be`](https://github.com/peter-evans/create-or-update-comment/commit/71345be0265236311c031f5c7866368bd1eff043) |
-| v5.0.0 | [`v5.0.0`](https://github.com/chainguard-actions/peter-evans-create-or-update-comment/tree/v5.0.0) | — |
+| v5.0.0 | [`v5.0.0`](https://github.com/chainguard-actions/peter-evans-create-or-update-comment/tree/v5.0.0) | [`e8674b0`](https://github.com/peter-evans/create-or-update-comment/commit/e8674b075228eee787fea43ef493e45ece1004c9) |
 
 ## Privacy
 
